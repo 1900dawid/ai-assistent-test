@@ -1,0 +1,42 @@
+import pandas as pd
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+df = pd.read_excel("Book1.xlsx")
+
+total = df["Sales"].sum()
+average = df["Sales"].mean()
+top =df.loc[df["Sales"].idxmax()]
+
+summary = f"""
+Total sales: {total}
+Average sale: {average}
+Top client: {top['Name']} ({top['Sales']})
+"""
+
+prompt = f"""
+Here are sales stats:
+
+{summary}
+
+Write a short business report in simple english, please
+"""
+
+response = client.chat.completions.create(
+        model = "gpt-4o-mini",
+        messages=[
+        {"role": "user", "content": prompt}])
+
+text = response.choices[0].message.content
+
+with open("report.txt", "w", encoding="utf-8") as f:
+        f.write(text)
+
+print("Report's done: report.txt")
+
+
+
